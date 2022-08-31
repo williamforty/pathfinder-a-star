@@ -3,6 +3,10 @@ import { Cell, maze, paintCells } from "./grid";
 const walls = maze.flat().filter(({ wall }) => wall);
 const paths = maze.flat().filter(({ wall }) => !wall);
 
+interface Node extends Cell {
+  previous?: Node;
+}
+
 const getNode = (x: number, y: number) => {
   if (x < 0 || x >= maze[0].length || y < 0 || y >= maze.length) {
     // Out of bounds
@@ -11,7 +15,7 @@ const getNode = (x: number, y: number) => {
   return { ...maze[y][x] };
 };
 
-const successors = (currentNode: Cell): Cell[] => {
+const successors = (currentNode: Cell): Node[] => {
   const adjacent = [
     { x: 0, y: -1 },
     { x: 0, y: 1 },
@@ -22,11 +26,20 @@ const successors = (currentNode: Cell): Cell[] => {
     .map((node) => getNode(currentNode.x + node.x, currentNode.y + node.y))
     .filter((node) => node !== null)
     .filter(({ wall }) => !wall);
-  return successorNodes;
+  return successorNodes.map((successor) => ({
+    ...successor,
+    previous: currentNode,
+  }));
 };
 
 const isSameLocation = (source: Cell, target: Cell) => {
   return source.x === target.x && source.y === target.y;
+};
+
+const getPath = (node: Node): Node[] => {
+  return node.previous
+    ? [{ ...node }, ...getPath(node.previous)]
+    : [{ ...node }];
 };
 
 const pathFind = async (startNode: Cell, goalNode: Cell): Promise<string> => {
@@ -39,7 +52,8 @@ const pathFind = async (startNode: Cell, goalNode: Cell): Promise<string> => {
 
     // Have we reached the goal?
     if (isSameLocation(thisNode, goalNode)) {
-      return `Found path`;
+      const foundPath = getPath(thisNode);
+      return `Found path of length ${foundPath.length}`;
     }
 
     // Mark as explored
@@ -53,10 +67,11 @@ const pathFind = async (startNode: Cell, goalNode: Cell): Promise<string> => {
       fringe.push(suc);
     });
 
-    paintCells(walls, "#f00");
-    paintCells(paths, "#fff");
-    paintCells(explored, "#00f");
-    paintCells(fringe, "#f0f");
+    paintCells(walls, "#000");
+    paintCells(paths, "#006");
+    paintCells(explored, "#060");
+    paintCells(fringe, "#ff0");
+    paintCells(getPath(thisNode), "#f00");
     await new Promise((resolve) => setTimeout(resolve, 0));
   } while (fringe.length > 0 && fringe.length < 10000);
 
