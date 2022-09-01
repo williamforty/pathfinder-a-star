@@ -36,7 +36,7 @@ const successors = (currentNode: Node, goalNode: Node): Node[] => {
     ...successor,
     previous: currentNode,
     totalCost: (currentNode.totalCost || 0) + 1,
-    heuristic: heuristicManhatten(currentNode, goalNode),
+    heuristic: heuristicManhatten(successor, goalNode),
   }));
 };
 
@@ -73,6 +73,10 @@ const paintScene = (
   paintCells(path, "#f00", 1);
 };
 
+const isWorseDuplicate = (source: Node, target: Node) => {
+  return isSameLocation(source, target) && !isNodeBetter(source, target);
+};
+
 const pathFind = async (startNode: Cell, goalNode: Cell): Promise<string> => {
   const fringe = [startNode];
   const explored: Cell[] = [];
@@ -94,11 +98,7 @@ const pathFind = async (startNode: Cell, goalNode: Cell): Promise<string> => {
     const successorNodes = successors(thisNode, goalNode);
 
     successorNodes.forEach((suc) => {
-      if (
-        [...explored, ...fringe].some((exploredNode) =>
-          isSameLocation(suc, exploredNode)
-        )
-      )
+      if ([...explored, ...fringe].some((node) => isWorseDuplicate(suc, node)))
         return;
       for (let i = 0; i < fringe.length; i++) {
         if (isNodeBetter(suc, fringe[i])) {
