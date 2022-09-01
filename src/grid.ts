@@ -14,20 +14,20 @@ const maze = mazeData.map((row, rowIndex): Cell[] => {
   }));
 });
 
-const cellSize = 50;
+const cellSize = 15;
 const canvas = <HTMLCanvasElement>document.getElementById("canvas");
 canvas.width = maze[0].length * cellSize;
 canvas.height = maze.length * cellSize;
 const context = canvas.getContext("2d");
 
-const paintCells = (cells: Cell[], fillStyle: string) => {
+const paintCells = (cells: Cell[], fillStyle: string, borderSize = 0) => {
   context.fillStyle = fillStyle;
   cells.forEach((cell) => {
     context.fillRect(
-      cell.x * cellSize + 1,
-      cell.y * cellSize + 1,
-      cellSize - 2,
-      cellSize - 2
+      cell.x * cellSize + borderSize,
+      cell.y * cellSize + borderSize,
+      cellSize - 2 * borderSize,
+      cellSize - 2 * borderSize
     );
   });
 };
